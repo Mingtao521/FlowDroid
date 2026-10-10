@@ -1709,4 +1709,21 @@ public class HeapTestCode {
 		i.str = TelephonyManager.getDeviceId();
 		i.leakIt();
 	}
+
+	private static class Holder {
+		A child;
+
+		void taintAllFields(String taint) {
+			// The taint wrapper propagates taint from the argument to this object and all its fields.
+		}
+	}
+
+	public void taintSubFieldsAliasTest() {
+		A b = new A();
+		Holder h = new Holder();
+		h.child = b;
+		h.taintAllFields(TelephonyManager.getDeviceId());
+		ConnectionManager cm = new ConnectionManager();
+		cm.publish(b.b);
+	}
 }

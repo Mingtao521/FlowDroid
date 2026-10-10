@@ -42,6 +42,7 @@ import soot.jimple.infoflow.sourcesSinks.manager.ISourceSinkManager;
 import soot.jimple.infoflow.sourcesSinks.manager.SinkInfo;
 import soot.jimple.infoflow.sourcesSinks.manager.SourceInfo;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
+import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.IReversibleTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
@@ -1355,5 +1356,19 @@ public abstract class HeapTests extends JUnitTests {
 		checkInfoflow(infoflow, 1);
 		Assert.assertEquals(2, infoflow.getResults().getResultSet().stream()
 				.map(res -> res.getSource().getStmt()).distinct().count());
+	}
+
+	@Test(timeout = 300000)
+	public void taintSubFieldsAliasTest() {
+		IInfoflow infoflow = initInfoflow();
+		String holder = "soot.jimple.infoflow.test.HeapTestCode$Holder";
+		EasyTaintWrapper wrapper = new EasyTaintWrapper(Collections.singletonMap(
+				holder, Collections.singleton("void taintAllFields(java.lang.String)")));
+		wrapper.addIncludePrefix(holder);
+		infoflow.setTaintWrapper(wrapper);
+		List<String> epoints = new ArrayList<String>();
+		epoints.add("<soot.jimple.infoflow.test.HeapTestCode: void taintSubFieldsAliasTest()>");
+		infoflow.computeInfoflow(appPath, libPath, epoints, sources, sinks);
+		checkInfoflow(infoflow, 1);
 	}
 }

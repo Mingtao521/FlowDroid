@@ -268,14 +268,16 @@ public class AliasProblem extends AbstractInfoflowProblem {
 					// if both are fields, we have to compare their fieldName
 					// via equals and their bases via PTS
 					if (leftValue instanceof InstanceFieldRef) {
-						if (source.getAccessPath().isInstanceFieldRef()) {
-							InstanceFieldRef leftRef = (InstanceFieldRef) leftValue;
-							if (leftRef.getBase() == source.getAccessPath().getPlainValue()) {
-								if (source.getAccessPath().firstFieldMatches(leftRef.getField())) {
-									targetType = source.getAccessPath().getFirstFieldType();
-									addRightValue = true;
-									cutFirstField = true;
-								}
+						InstanceFieldRef leftRef = (InstanceFieldRef) leftValue;
+						AccessPath sourceAP = source.getAccessPath();
+						if (leftRef.getBase() == sourceAP.getPlainValue()) {
+							if (sourceAP.isInstanceFieldRef() && sourceAP.firstFieldMatches(leftRef.getField())) {
+								targetType = sourceAP.getFirstFieldType();
+								addRightValue = true;
+								cutFirstField = true;
+							} else if (sourceAP.getFragmentCount() == 0 && sourceAP.getTaintSubFields()) {
+								targetType = leftRef.getField().getType();
+								addRightValue = true;
 							}
 						}
 						// indirect taint propagation:
